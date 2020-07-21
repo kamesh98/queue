@@ -1,0 +1,6 @@
+flask
+flask-cors
+gunicorn
+flask_jwt_extended
+sqlalchemy
+psycopg2-binary
