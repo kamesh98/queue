@@ -19,6 +19,6 @@ Components used
 
 command `python wsqi.py` 
 
-The program creates a flask webserver in the localhost, which is restricted to use only for development for production it is highly recomended to run through a WSQI server like gunicorn.
+The program creates a flask webserver in the localhost, which is restricted to use only for development for production it is highly recomended to run through a WSGI like gunicorn.
 
 command `gunicorn -b 0.0.0.0:PORT --workers worker wsgi:app`
