@@ -99,12 +99,18 @@ def mailing(agent_id, email, token, user_id):
     s.quit() 
 
 def check_null(*args):
+    '''
+    To check whether the inputs given to the apis arent null
+    '''
     for i in args:
         if not i:
             return False
     return True
 
 def find_address(loaction):
+    '''
+    Find the address of the user
+    '''
     flag = False
     geolocator = Nominatim(user_agent="VideoKyc")
     address = geolocator.reverse(loaction).address
@@ -114,6 +120,9 @@ def find_address(loaction):
 
 @app.route('/queue/addagent',methods=['POST'])
 def addagent():
+    '''
+    - API call for adding agent into the DB
+    '''
     try:
         agent_id = request.form['agent_id']
         name = request.form['name']

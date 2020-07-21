@@ -8,72 +8,11 @@ import requests
 
 agentid_token_mapper = {}
 
-def indone_registration(email, password, name, last_name, phone):
-    header = {'Content-Type': 'application/json'}
-    url = 'https://one.in-d.ai/api/users/direct/'
-    data = {
-        'email': email,
-        'password': password,
-        'first_name': name,
-        'last_name': last_name,
-        'phone': phone
-    }
-    response = requests.post(url,data=json.dumps(data),headers=header)
-    print(response.content, response.status_code)
-    if response.status_code == 201:
-        return True, True, 'User Added in In-d one'
-    else:
-        response_json = response.json()
-        response_json_email = response_json.get('email', 'None')
-        response_json_phone = response_json.get('phone', 'None')
-        if "exists" in response_json_email[0]:
-            return False, True, 'Email has been registerd already in in-d one'
-        elif "exists" in response_json_phone[0]:
-            return False, False,'Phone number is already present please use a diifrent phone number'
-        return False, False, 'Failed'
-
-def indone_agent_token_generation(email, password, agent_id, channel='WB'):
-    global agentid_token_mapper
-    print(agent_id)
-    header = {'Content-Type': 'application/json'}
-    url =  'https://one.in-d.ai/api/users/token/'
-    data = {
-        'email': email,
-        'password': password,
-        'channel': "WEB"
-    }
-    response = requests.post(url, data=json.dumps(data), headers=header).json()
-    token = response.get('access', False)
-    print(token)
-    if token:
-        agentid_token_mapper[agent_id] = token
-        print(agentid_token_mapper)
-        return token
-    else:
-        return False
-
-def indone_api_key_creation(agent_id, name, expiry=0.02):
-    global agentid_token_mapper
-    #print(agentid_token_mapper)
-    print(agent_id)
-    token = agentid_token_mapper[agent_id]
-    token = 'Bearer ' + token
-    header = {'Content-Type': 'application/json', 'Authorization': token}
-    data = {
-        'name' : 'Videokyc',
-        'expiry': expiry
-    }
-    url = 'https://one.in-d.ai/api/applications/'
-    response = requests.post(url, data=json.dumps(data), headers=header)
-    print(response.content, response.status_code)
-    response = requests.post(url, data=json.dumps(data), headers=header).json()
-    key = response.get('key', False)
-    if key:
-        return key
-    else:
-        return False
-
 def add_agent(name, agent_id, password, email, company, phone, availabilty='A'):
+    '''
+        Adding a agnet into the DB
+    '''
+
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -83,7 +22,7 @@ def add_agent(name, agent_id, password, email, company, phone, availabilty='A'):
             return ret, ret1
 
         flag = True
-        flag, flag1, response = indone_registration(email=email, password=password, name=name, last_name= name[0], phone=phone)
+        flag1 = True #Using a in house authentication
         if flag1:
             if Agent.check_agent_email(email,session):
                 if not Agent.insert_agent(session, name=name, agent_id=agent_id, password=password, email=email, company=company, avail='A'):
@@ -109,6 +48,9 @@ def fail(session,message):
     return False, message
 
 def force_exit(agent_id,user_id):
+    '''
+        - Force exit a call and add a next coustmer to a call
+    '''
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -182,7 +124,7 @@ def force_exit(agent_id,user_id):
                 if not agtav:
                     ret, ret1 = fail(session,'Cannot change avalability')
                     return ret, ret1
-        key = indone_api_key_creation(agent_id, str(uuid4()), expiry=0.02)
+        key = 'ABCD' #use to create a key
         if not key:
             ret, ret1 = fail(session, 'Could not generate ind-one key')
             return ret, ret1
@@ -201,6 +143,7 @@ def force_exit(agent_id,user_id):
 
 
 def agent_login(agent_id):
+    #Perform a login for the agent
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -265,7 +208,7 @@ def agent_login(agent_id):
                 if not agtav:
                     ret, ret1 = fail(session,'Cannot change avalability')
                     return ret, ret1
-        key = indone_api_key_creation(agent_id, str(uuid4()), expiry=0.02)
+        key = 'ABCD' #use to create a key
         if not key:
             ret, ret1 = fail(session, 'Could not generate ind-one key')
             return ret, ret1
@@ -284,6 +227,7 @@ def agent_login(agent_id):
     return True, data
 
 def agent_logout(agent_id):
+    #Performing a logout of the Agent
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -369,7 +313,7 @@ def add_user(phone, email, name, company, status='W',id1=None):
                 if not user_both:
                     ret,ret1 = fail(session, 'Could not change 2 changes')
                     return ret,ret1
-        key = indone_api_key_creation(agent_id, str(uuid4()), expiry=0.02)
+        key = 'ABCD' #use to create a key
         if not key:
             ret, ret1 = fail(session, 'Could not generate ind-one key')
             return ret, ret1
@@ -388,6 +332,7 @@ def add_user(phone, email, name, company, status='W',id1=None):
     return True, data
 
 def finish(agent_id, user_id,uid, geo, liveness, validation, face):
+    #Finishing a call for the agent and connecting the next user in the call
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -456,7 +401,7 @@ def finish(agent_id, user_id,uid, geo, liveness, validation, face):
                 if not agtav:
                     ret, ret1 = fail(session,'Cannot change avalability')
                     return ret, ret1
-        key = indone_api_key_creation(agent_id, str(uuid4()), expiry=0.02)
+        key = 'ABCD' #use to create a key
         if not key:
             ret, ret1 = fail(session, 'Could not generate ind-one key')
             return ret, ret1
@@ -473,6 +418,7 @@ def finish(agent_id, user_id,uid, geo, liveness, validation, face):
     return True, data
 
 def finish_exit(agent_id, user_id, uid, geo, liveness, validation, face):
+    #Finishing a call for the agent and loginout the agent
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -515,6 +461,7 @@ def finish_exit(agent_id, user_id, uid, geo, liveness, validation, face):
     return True, 'Done'
 
 def extract_user_data(agent_id):
+    # Perform a search based on the company 
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
@@ -581,6 +528,7 @@ def get_id_byemail(email):
         return True, agent_id
 
 def insert_link(user_id,link):
+    #Inserting the link to the DB
     try:
         Session = sessionmaker(bind = engine)
         session = Session() 
@@ -621,6 +569,7 @@ def search(agent_id, search_id, search_text, end_date=False):
     return data
 
 def drop_call(agent_id):
+    # When the agent call get dropped this fucntion is evoked
     try:
         Session = sessionmaker(bind = engine)
         session = Session()
